@@ -10,16 +10,14 @@ git clone https://github.com/prometheus-operator/kube-prometheus.git
 
 CD into the `kube-prometheus` repo
 
-Run the following code block together.
+Run the following:
 
 ```
-# Create the namespace and CRDs, and then wait for them to be availble before creating the remaining resources
-kubectl create -f manifests/setup
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
-# Wait until the "servicemonitors" CRD is created. The message "No resources found" means success in this context.
-until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
+helm repo update
 
-kubectl create -f manifests/
+helm install kubeprometheus prometheus-community/kube-prometheus-stack
 ```
 
 The next installation, which is the `metricsconsumption.yaml` configures Prometheus to listen to the `/metrics` endpoint from ArgoCD. The Argo Rollouts controller is already instrumented with Prometheus metrics available at /metrics in port 8082. You can use these metrics to look at the health of the controller either via dashboards or via other Prometheus integrations.
@@ -38,12 +36,12 @@ Forward the port of the Grafana UI so you can log in and see the graphs
 
 
 ```
-kubectl --namespace monitoring port-forward svc/grafana 3000
+kubectl port-forward svc/kubeprometheus-grafana 8082:80
 ```
 
 To log into Grafana:
 1. Username: admin
-2. Password: admin
+2. Password: prom-operator
 
 Within Grafana, import the example ArgoCD dashboard in. It's in the same directory as this `handson.md` file and it's called `argo.json`
 
